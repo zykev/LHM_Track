@@ -312,16 +312,17 @@ class SMPLXDecoder:
 
         with torch.no_grad():
             body = self.body_model(
-                global_orient   = _t(raw['global_orient']),    # (1,3)
-                body_pose       = _t(raw['body_pose']),        # (1,63)
-                betas           = _t(raw['betas']),            # (1,10)
-                transl          = _t(raw['transl']),           # (1,3)
-                left_hand_pose  = _t(raw['left_hand_pose']),   # (1,12) PCA 系数
-                right_hand_pose = _t(raw['right_hand_pose']),  # (1,12) PCA 系数
-                jaw_pose        = _t(raw['jaw_pose']),         # (1,3)
-                leye_pose       = _t(raw['leye_pose']),        # (1,3)
-                reye_pose       = _t(raw['reye_pose']),        # (1,3)
-                expression      = _t(raw['expression']),       # (1,10)
+                global_orient    = _t(raw['global_orient']),    # (1,3)
+                body_pose        = _t(raw['body_pose']),        # (1,63)
+                betas            = _t(raw['betas']),            # (1,10)
+                transl           = _t(raw['transl']),           # (1,3)
+                left_hand_pose   = _t(raw['left_hand_pose']),   # (1,12) PCA 系数
+                right_hand_pose  = _t(raw['right_hand_pose']),  # (1,12) PCA 系数
+                jaw_pose         = _t(raw['jaw_pose']),         # (1,3)
+                leye_pose        = _t(raw['leye_pose']),        # (1,3)
+                reye_pose        = _t(raw['reye_pose']),        # (1,3)
+                expression       = _t(raw['expression']),       # (1,10)
+                return_full_pose = True,                        # 确保 full_pose 不为 None
             )
 
         # full_pose: (1, 165) = (1, 55×3) 全关节轴角（手部 PCA 已解码）
