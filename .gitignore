@@ -8,6 +8,8 @@
 .vscode/
 .idea/
 
+.datasets/
+.checkpoints/
 # Ignore operating system files
 .DS_Store
 Thumbs.db
@@ -62,3 +64,4 @@ pretrained_models/
 debug_vis/
 pretrained_models
 train_data
+gfpgan
