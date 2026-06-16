@@ -45,20 +45,20 @@ prepare_4ddress.py — 将 4DDress 数据集转换为 LHM 推理/训练所需格
 用法示例：
   # 处理单个序列（只转 SMPL-X，不跑 FLAME）
   python prepare_4ddress.py \\
-      --root_dir /path/to/4ddress \\
+      --root_dir .datasets/4ddress \\
       --subject 00122 --outfit Outer --take Take1 \\
       --output_dir ./train_data/4ddress_lhm \\
       --mode smplx
 
   # 在已转换的序列上补充跑 FLAME 估计
   python prepare_4ddress.py \\
-      --root_dir /path/to/4ddress \\
+      --root_dir .datasets/4ddress \\
       --output_dir ./train_data/4ddress_lhm \\
       --mode flame --model_path ./pretrained_models
 
   # 完整流程（SMPL-X 转换 + FLAME 估计）
   python prepare_4ddress.py \\
-      --root_dir /path/to/4ddress \\
+      --root_dir .datasets/4ddress \\
       --output_dir ./train_data/4ddress_lhm \\
       --mode all --sample_rate 5 --build_meta
 """
@@ -430,19 +430,20 @@ def build_lhm_smplx_json(smplx_cam: dict, K: np.ndarray,
 # 3. 帧索引解析
 # ===========================================================================
 
-def parse_frame_idx_from_pkl(pkl_path: str) -> tuple:
+def parse_frame_idx_from_pkl(pkl_path: str) -> int:
     """
-    从 4DDress pkl 文件名解析帧索引。
+    从 4DDress pkl 文件名解析帧索引（整数）。
 
-    命名格式：mesh-{frame:06d}_smplx.pkl 或 mesh-{frame:06d}_smpl.pkl
-    返回：(frame_idx_int, frame_idx_str)，如 (1, '000001')
+    支持两种命名格式：
+      mesh-f00166_smplx.pkl  → 166
+      mesh-000001_smplx.pkl  → 1
     """
-    fname = os.path.basename(pkl_path)  # 'mesh-000001_smplx.pkl'
+    fname = os.path.basename(pkl_path)
     try:
-        # split('-') → ['mesh', '000001_smplx.pkl']
-        # split('_')[0] → '000001'
-        frame_str = fname.split('-')[1].split('_')[0]
-        return int(frame_str), frame_str
+        token = fname.split('-')[1].split('_')[0]  # 'f00166' 或 '000001'
+        if token.startswith('f'):
+            token = token[1:]
+        return int(token)
     except (IndexError, ValueError):
         raise ValueError(f"无法从文件名解析帧索引: {fname}")
 
@@ -520,7 +521,7 @@ def process_sequence_smplx(
     n_success = 0
     for pkl_path in tqdm(sampled_pkl, desc='  SMPL-X 转换', leave=False):
         try:
-            frame_idx, frame_str = parse_frame_idx_from_pkl(pkl_path)
+            frame_idx = parse_frame_idx_from_pkl(pkl_path)
         except ValueError as e:
             print(f"  [警告] {e}")
             continue
@@ -835,8 +836,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument('--root_dir',    type=str, required=True,
-                        help='4DDress 数据集根目录路径（服务器或本地）')
+    parser.add_argument('--root_dir',    type=str, default='.datasets/4ddress',
+                        help='4DDress 数据集根目录路径（默认：.datasets/4ddress）')
     parser.add_argument('--output_dir',  type=str, default='./train_data/4ddress_lhm',
                         help='输出目录（默认：./train_data/4ddress_lhm）')
     parser.add_argument('--model_path',  type=str, default='./pretrained_models',
